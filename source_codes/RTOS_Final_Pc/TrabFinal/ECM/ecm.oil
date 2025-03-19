@@ -1,0 +1,101 @@
+//////////////////////////////////////////////////////////////////////////////////
+// Universidade de Brasilia (UnB)
+// Faculdade do Gama
+// Curso: Engenharia Automotiva
+// Disciplina : Engenharia de Software Automotivo
+//////////////////////////////////////////////////////////////////////////////////
+
+OIL_VERSION = "2.5" : "test" ;
+
+CPU test {
+    OS config {
+        STATUS = STANDARD;
+        BUILD = TRUE {
+        TRAMPOLINE_BASE_PATH = "../../../../";
+        APP_NAME = "ecm_image";
+        APP_SRC = "ecm.cpp";
+        CPPCOMPILER = "avr-g++";
+        COMPILER = "avr-gcc";
+        LINKER = "avr-gcc";
+        ASSEMBLER = "avr-gcc";
+        COPIER = "avr-objcopy";
+        SYSTEM = PYTHON;
+        LIBRARY = serial ;
+        LIBRARY = mcp_can;
+        };
+        SYSTEM_CALL = TRUE;
+    };
+    
+    APPMODE stdAppmode {};
+
+    RESOURCE infoCAN {
+        RESOURCEPROPERTY = STANDARD;
+    };
+
+    RESOURCE infoSerial {
+        RESOURCEPROPERTY = STANDARD;
+    };
+
+    ALARM periodicAlarmSerial {
+        COUNTER= SystemCounter;
+        ACTION = ACTIVATETASK {
+            TASK = serialRPM;
+        };
+        AUTOSTART = TRUE {
+            ALARMTIME = 20; 
+            CYCLETIME = 20; 
+            APPMODE = stdAppmode;
+        };
+    };
+    
+    TASK serialRPM {
+        PRIORITY = 10;
+        AUTOSTART = FALSE;
+        ACTIVATION = 1;
+        SCHEDULE = FULL;
+        STACKSIZE = 256;
+        //RESOURCE = currGearData;
+    };
+
+    ALARM periodicAlarmProcess {
+        COUNTER= SystemCounter;
+        ACTION = ACTIVATETASK {
+            TASK = interfaceProcessing;
+        };
+        AUTOSTART = TRUE {
+            ALARMTIME = 30; 
+            CYCLETIME = 30; 
+            APPMODE = stdAppmode;
+        };
+    };
+    
+    TASK interfaceProcessing {
+        PRIORITY = 20;
+        AUTOSTART = FALSE;
+        ACTIVATION = 1;
+        SCHEDULE = FULL;
+        STACKSIZE = 256;
+        //RESOURCE = currGearData;
+    };
+
+    ALARM periodicAlarmCAN {
+        COUNTER= SystemCounter;
+        ACTION = ACTIVATETASK {
+            TASK = interfaceCAN;
+        };
+        AUTOSTART = TRUE {
+            ALARMTIME = 50; //ativado a cada 100 ms
+            CYCLETIME = 50; //ativado a cada 100 ms
+            APPMODE = stdAppmode;
+        };
+    };
+    
+    TASK interfaceCAN {
+        PRIORITY = 30;
+        AUTOSTART = FALSE;
+        ACTIVATION = 1;
+        SCHEDULE = FULL;
+        STACKSIZE = 256;
+        //RESOURCE = currGearData;
+    };
+};

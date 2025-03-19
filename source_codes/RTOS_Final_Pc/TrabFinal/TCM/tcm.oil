@@ -1,0 +1,102 @@
+//////////////////////////////////////////////////////////////////////////////////
+// Universidade de Brasilia (UnB)
+// Faculdade do Gama
+// Curso: Engenharia Automotiva
+// Disciplina : Engenharia de Software Automotivo
+//////////////////////////////////////////////////////////////////////////////////
+
+OIL_VERSION = "2.5" : "test" ;
+
+CPU test {
+    OS config {
+        STATUS = STANDARD;
+        BUILD = TRUE {
+        TRAMPOLINE_BASE_PATH = "../../../../";
+        APP_NAME = "tcm_image";
+        APP_SRC = "tcm.cpp";
+        CPPCOMPILER = "avr-g++";
+        COMPILER = "avr-gcc";
+        LINKER = "avr-gcc";
+        ASSEMBLER = "avr-gcc";
+        COPIER = "avr-objcopy";
+        SYSTEM = PYTHON;
+        LIBRARY = serial ;
+        LIBRARY = mcp_can;
+        };
+        SYSTEM_CALL = TRUE;
+    };
+    
+    APPMODE stdAppmode {};
+
+    RESOURCE currNGear {
+        RESOURCEPROPERTY = STANDARD;
+    };
+
+    RESOURCE currGearData {
+        RESOURCEPROPERTY = STANDARD;
+    };
+
+    ALARM periodicAlarmSerial {
+        COUNTER= SystemCounter;
+        ACTION = ACTIVATETASK {
+            TASK = serialGear;
+        };
+        AUTOSTART = TRUE {
+            ALARMTIME = 20; 
+            CYCLETIME = 20; 
+            APPMODE = stdAppmode;
+        };
+    };
+    
+    TASK serialGear {
+        PRIORITY = 10;
+        AUTOSTART = FALSE;
+        ACTIVATION = 1;
+        SCHEDULE = FULL;
+        STACKSIZE = 256;
+        RESOURCE = currNGear;
+    };
+
+    ALARM periodicAlarmProcessing {
+        COUNTER= SystemCounter;
+        ACTION = ACTIVATETASK {
+            TASK = interfaceProcessing;
+        };
+        AUTOSTART = TRUE {
+            ALARMTIME = 20; 
+            CYCLETIME = 20; 
+            APPMODE = stdAppmode;
+        };
+    };
+    
+    TASK interfaceProcessing {
+        PRIORITY = 20;
+        AUTOSTART = FALSE;
+        ACTIVATION = 1;
+        SCHEDULE = FULL;
+        STACKSIZE = 256;
+        RESOURCE = currNGear;
+        RESOURCE = currGearData;
+    };
+
+    ALARM periodicAlarmCAN {
+        COUNTER= SystemCounter;
+        ACTION = ACTIVATETASK {
+            TASK = sendGearCAN;
+        };
+        AUTOSTART = TRUE {
+            ALARMTIME = 200; //ativado a cada 200 ms
+            CYCLETIME = 200; //ativado a cada 200 ms
+            APPMODE = stdAppmode;
+        };
+    };
+    
+    TASK sendGearCAN {
+        PRIORITY = 30;
+        AUTOSTART = FALSE;
+        ACTIVATION = 1;
+        SCHEDULE = FULL;
+        STACKSIZE = 256;
+        RESOURCE = currGearData;
+    };
+};
